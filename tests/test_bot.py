@@ -3,11 +3,11 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from telegram import Update, Message, User, Chat, Bot
 from dotenv import load_dotenv
-
+from setting.config import *
 from bot.handlers.basic_fns import start  # Import the start handler from handlers.py
 
-load_dotenv()
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+
+BOT_TOKEN = config.BOT_TOKEN
 
 PUBLIC_IP = "8.8.8.8"  # Example public IP address for testing
 
