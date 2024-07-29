@@ -50,20 +50,38 @@ The bot part this reposotory, but the diagram entails the entire project
 - **Backend Server**: [FastAPI](https://fastapi.tiangolo.com/) (details in separate repository)
 - **Hosting**: [AWS](https://aws.amazon.com/)
 
-## Enviroment variables
-There needs to be an enviroment variable for the server link
-BOT_TOKEN="Your_bot_token"
+
+## Enviroment variables  
+* For Dev
+
+- `SERVER_URL_DEV`: Url of server. (from .env_dev)
+- `BOT_TOKEN_DEV`: token of bot. (from .env_dev)
+
+* For Prod
+
+- `SERVER_URL_PROD`: Url of server. (from .env_prod)
+- `BOT_TOKEN_PROD`: token of bot. (from .env_prod)
 
 ## How to run
+ 
+ In the root directory, open terminal and run these commands:        
+1.Install the required packages:    
 
-In root directory, open terminal and run these commands  
-```
-pip install -r requirements.txt
-python -m bot.main
-```
+``` pip install -r requirements.txt ```
 
+ 2.Run the Bot    
+* for Development    
+``` 
+python -m bot.main --env dev 
+ ``` 
+ * or simply:    
+``` 
+python -m bot.main  
+ ```
+ * for Production:    
+``` 
+python -m bot.main --env prod
+ ``` 
 
-To run tests use this command  
-```
-pytest
-```
+To run tests use this command      
+``` pytest ```

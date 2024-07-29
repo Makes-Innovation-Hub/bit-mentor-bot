@@ -24,10 +24,10 @@ class Config:
 
     def set_parameters(self):
         if self.env == 'prod':
-            self.SERVER_URL = os.getenv("SERVER_ADDRESS_PROD")
+            self.SERVER_URL = os.getenv("SERVER_URL_PROD")
             self.BOT_TOKEN = os.getenv("BOT_TOKEN_PROD")
         else:
-            self.SERVER_URL = os.getenv("SERVER_ADDRESS_DEV")
+            self.SERVER_URL = os.getenv("SERVER_URL_DEV")
             self.BOT_TOKEN = os.getenv("BOT_TOKEN_DEV")
 
         if self.SERVER_URL is None or self.BOT_TOKEN is None:
