@@ -3,34 +3,39 @@ from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
 from bot.setting.config import config
 
-
 difficulty_button1 = KeyboardButton("easy")
 difficulty_button2 = KeyboardButton("medium")
 difficulty_button3 = KeyboardButton("hard")
 difficulty_button4 = KeyboardButton("none")
-difficulty_keyboard = ReplyKeyboardMarkup([[difficulty_button1, difficulty_button2,difficulty_button3, difficulty_button4]],
-                               resize_keyboard=True, one_time_keyboard=True)
+difficulty_keyboard = ReplyKeyboardMarkup(
+    [[difficulty_button1, difficulty_button2, difficulty_button3, difficulty_button4]],
+    resize_keyboard=True, one_time_keyboard=True)
 
 answers_button1 = KeyboardButton("1")
 answers_button2 = KeyboardButton("2")
 answers_button3 = KeyboardButton("3")
 answers_button4 = KeyboardButton("4")
-answers_keyboard = ReplyKeyboardMarkup([[answers_button1, answers_button2], [answers_button3, answers_button4]], resize_keyboard=True, one_time_keyboard=True)
+answers_keyboard = ReplyKeyboardMarkup([[answers_button1, answers_button2], [answers_button3, answers_button4]],
+                                       resize_keyboard=True, one_time_keyboard=True)
 
 DIFFICULTY, ANSWERS, TOPIC, USER_ANSWER = range(4)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, public_ip: str) -> None:
     message = f"Hello! This is your bot.\nPublic IP: {public_ip}"
     await update.message.reply_text(message)
 
+
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "To get a question you need to use /question\nYou will be asked to enter the required information\nFirst you "
-        "need to enter a difficulty\nThen enter the number of answers\nThen enter the topic")
+        "need to enter a diffic ulty\nThen enter the number of answers\nThen enter the topic")
+
 
 async def question_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Choose difficulty level:", reply_markup=difficulty_keyboard)
     return DIFFICULTY
+
 
 async def difficulty_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     difficulty = update.message.text
@@ -42,6 +47,7 @@ async def difficulty_response(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text("Enter number of answers:", reply_markup=answers_keyboard)
     return ANSWERS
 
+
 async def answers_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     num_of_answers = update.message.text
     if num_of_answers not in ["1", "2", "3", "4"]:
@@ -51,6 +57,7 @@ async def answers_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     context.user_data['num_of_answers'] = num_of_answers
     await update.message.reply_text("Enter a topic:")
     return TOPIC
+
 
 async def topic_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     topic = update.message.text
@@ -70,12 +77,13 @@ async def topic_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             reply = f"Question: {question[0]}\n"
             if int(num_of_answers) > 1:
                 for i, answer in enumerate(answers):
-                    reply += f"({i+1}) {answer[0]}.\n"
+                    reply += f"({i + 1}) {answer[0]}.\n"
             await update.message.reply_text(reply)
             return USER_ANSWER
         except Exception as e:
-            print("error in gen question: ",e)
+            print("error in gen question: ", e)
             return -1
+
 
 async def user_answer_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_answer = update.message.text
@@ -87,6 +95,7 @@ async def user_answer_response(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.message.reply_text(f"Wrong! The correct answer is {correct_answer}.")
 
     return ConversationHandler.END
+
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Operation canceled.")
