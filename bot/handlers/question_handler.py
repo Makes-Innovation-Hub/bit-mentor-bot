@@ -21,17 +21,6 @@ answers_keyboard = ReplyKeyboardMarkup([[answers_button1, answers_button2], [ans
 DIFFICULTY, ANSWERS, TOPIC, USER_ANSWER = range(4)
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, public_ip: str) -> None:
-    message = f"Hello! This is your bot.\nPublic IP: {public_ip}"
-    await update.message.reply_text(message)
-
-
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(
-        "To get a question you need to use /question\nYou will be asked to enter the required information\nFirst you "
-        "need to enter a diffic ulty\nThen enter the number of answers\nThen enter the topic")
-
-
 async def question_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Choose difficulty level:", reply_markup=difficulty_keyboard)
     return DIFFICULTY
@@ -94,11 +83,6 @@ async def user_answer_response(update: Update, context: ContextTypes.DEFAULT_TYP
     else:
         await update.message.reply_text(f"Wrong! The correct answer is {correct_answer}.")
 
-    return ConversationHandler.END
-
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("Operation canceled.")
     return ConversationHandler.END
 
 
