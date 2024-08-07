@@ -29,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, public_ip: s
     logger.info(f"Sending start message: {message}")
     await update.message.reply_text(message)
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "To get a question you need to use /question\n"
         "You will be asked to enter the required information\n"

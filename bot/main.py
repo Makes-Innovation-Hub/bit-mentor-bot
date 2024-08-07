@@ -3,9 +3,10 @@ import requests
 from telegram.ext import Application, CommandHandler, MessageHandler, ConversationHandler, filters, ContextTypes
 import logging.config
 from bot.config.logging_config import logging_config
-from bot.handlers.basic_fns import *
+from bot.handlers.basic_fns import start, connect, help, cancel
 from bot.handlers.question_handlers import *
 from bot.handlers.user_handlers import *
+from bot.handlers.quote_handlers import quote_command
 from bot.setting.config import *
 
 # Configure logging
@@ -37,9 +38,9 @@ def main():
             application = Application.builder().token(BOT_TOKEN).build()
             # Register the /start command with the start function
             start_handler = CommandHandler('start', lambda update, context: start(update, context, public_ip))
-            connect_handler = CommandHandler('connect', connect)
-            help_handler = CommandHandler('help', help_command)
-
+            connect_handler = CommandHandler('connect', lambda update, context: connect(update, context))
+            help_handler = CommandHandler('help',  lambda update, context: help(update, context))
+            quote_handler = CommandHandler('quote',  lambda update, context: quote_command(update, context))
             conv_handler = ConversationHandler(
                 entry_points=[CommandHandler('question', question_command)],
                 states={
@@ -56,6 +57,7 @@ def main():
             application.add_handler(start_handler)
             application.add_handler(connect_handler)
             application.add_handler(help_handler)
+            application.add_handler(quote_handler)
 
             logger.info("Bot handlers added and polling started")
             # Start the Bot
