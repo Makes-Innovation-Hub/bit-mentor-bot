@@ -1,41 +1,32 @@
 import os
 import requests
-from telegram.ext import Application, CommandHandler, MessageHandler, ConversationHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, ConversationHandler, filters, ContextTypes,CallbackQueryHandler
 import logging.config
 from bot.config.logging_config import logging_config
-from bot.handlers.basic_fns import *
+from bot.handlers.basic_handlers import *
 from bot.handlers.question_handlers import *
 from bot.handlers.user_handlers import *
+from bot.handlers.youtube_handler import mark_video_watched_callback
 from bot.setting.config import *
 
 # Configure logging
+from bot.utils.public_ip import get_public_ip
+from bot.handlerConversation.youtubeConversation import youtube_conversation
+
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
-
-def get_public_ip():
-    try:
-        response = requests.get('https://api.ipify.org?format=json')
-        response.raise_for_status()
-        ip = response.json()['ip']
-        logger.info(f"Fetched public IP: {ip}")
-        return ip
-    except Exception as e:
-        logger.error("Error fetching public IP", exc_info=True)
-        raise
 
 
 # Main function
 def main():
     logger.info("Starting bot application")
-    # Fetch the public IP address
     public_ip = get_public_ip()
-
-    # Create the Application and pass it your bot's token
     try:
         BOT_TOKEN = config.BOT_TOKEN
         if BOT_TOKEN:
             application = Application.builder().token(BOT_TOKEN).build()
-            # Register the /start command with the start function
+
+            # basic
             start_handler = CommandHandler('start', lambda update, context: start(update, context, public_ip))
             connect_handler = CommandHandler('connect', connect)
             help_handler = CommandHandler('help', help_command)
@@ -50,7 +41,9 @@ def main():
                 },
                 fallbacks=[CommandHandler('cancel', cancel)],
             )
-
+            # youtube
+            application.add_handler(youtube_conversation())
+            application.add_handler(CallbackQueryHandler(mark_video_watched_callback))
 
             application.add_handler(conv_handler)
             application.add_handler(start_handler)
@@ -58,7 +51,6 @@ def main():
             application.add_handler(help_handler)
 
             logger.info("Bot handlers added and polling started")
-            # Start the Bot
             application.run_polling()
         else:
             raise Exception("BOT_TOKEN not loaded correctly as env var")

@@ -64,7 +64,7 @@ async def handle_open_question_topic(update: Update, context: ContextTypes.DEFAU
     context.user_data['correct_answer'] = response["answer"]
     context.user_data['explanations'] = [response["details"]]
 
-    reply = f"Question: {response["question_text"]}\n"
+    reply = f'Question: {response["question_text"]}\n'
     await update.message.reply_text(reply)
     
     return USER_ANSWER
@@ -84,7 +84,7 @@ async def handle_closed_question_topic(update: Update, context: ContextTypes.DEF
     context.user_data['correct_answer'] = response["correct_answer"]
     context.user_data['explanations'] = response["details"]
 
-    reply = f"Question: {response["question_text"]}\n"
+    reply = f'Question: {response["question_text"]}\n'
     for i, answer in enumerate(response["options"]):
         reply += f"({i+1}) {answer}.\n"
     

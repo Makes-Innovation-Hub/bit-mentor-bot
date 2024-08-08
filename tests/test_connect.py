@@ -5,7 +5,7 @@ from unittest.mock import patch, Mock, AsyncMock
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.handlers.basic_fns import connect
+from bot.handlers.basic_handlers import connect
 
 
 @pytest.mark.asyncio

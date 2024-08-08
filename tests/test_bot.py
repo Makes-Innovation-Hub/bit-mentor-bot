@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from telegram import Update, Message, User, Chat, Bot
 from dotenv import load_dotenv
 
-from bot.handlers.basic_fns import start  # Import the start handler from handlers.py
+from bot.handlers.basic_handlers import start  # Import the start handler from handlers.py
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
