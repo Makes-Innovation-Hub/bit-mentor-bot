@@ -49,6 +49,7 @@ async def question_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         int: The next state in the conversation flow.
     """
     try:
+        context.user_data["operation"] = "question command"
         app_logger.info(f"User {update.effective_user.username} ({update.effective_user.id}) triggered question command")
         await update.message.reply_text("Choose difficulty level:", reply_markup=get_difficulty_keyboard())
         app_logger.info("Sent difficulty level options to user")

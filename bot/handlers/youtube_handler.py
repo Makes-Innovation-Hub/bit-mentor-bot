@@ -21,6 +21,7 @@ async def start_youtube(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     """
     try:
+        context.user_data["operation"] = "youtube command"
         app_logger.info(f"User {update.effective_user.username} ({update.effective_user.id}) started YouTube video selection.")
         await send_category_selection(update)
         return YOUTUBE_TOPIC

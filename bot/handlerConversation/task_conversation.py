@@ -19,11 +19,11 @@ def task_conversation():
     task_conv = ConversationHandler(
         entry_points=[CommandHandler('task', task)],
         states={
-            TITLE: [MessageHandler(filters.TEXT, title_response)],
-            START: [MessageHandler(filters.TEXT, start_response)],
-            END: [MessageHandler(filters.TEXT, end_response)],
-            LOCATION: [MessageHandler(filters.LOCATION, location_response)],
-            CODE : [MessageHandler(filters.TEXT, auth_code_response)],
+            TITLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, title_response)],
+            START: [MessageHandler(filters.TEXT & ~filters.COMMAND, start_response)],
+            END: [MessageHandler(filters.TEXT & ~filters.COMMAND, end_response)],
+            LOCATION: [MessageHandler(filters.LOCATION & ~filters.COMMAND, location_response)],
+            CODE : [MessageHandler(filters.TEXT & ~filters.COMMAND, auth_code_response)],
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )

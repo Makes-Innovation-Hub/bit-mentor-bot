@@ -20,6 +20,7 @@ async def task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         int: The TITLE constant, indicating the next state in the conversation.
     """
     try:
+        context.user_data["operation"] = "task command"
         app_logger.info(f"User {update.effective_user.username} ({update.effective_user.id}) triggered task command")
         await update.message.reply_text("What is the title of your task? (or /cancel to cancel this conversation)")
         app_logger.info("Sent title prompt to user")
