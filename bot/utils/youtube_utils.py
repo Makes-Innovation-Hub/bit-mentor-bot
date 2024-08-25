@@ -1,7 +1,13 @@
 import requests
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 from bot.config.logging_config import app_logger
+
+def get_video_length_keyboard():
+    button1 = KeyboardButton("short")
+    button2 = KeyboardButton("medium")
+    button3 = KeyboardButton("long")
+    return ReplyKeyboardMarkup([[button1, button2, button3]], resize_keyboard=True, one_time_keyboard=True)
 
 async def handle_video_watched(query: Update.callback_query, video_url: str, button_text: str, user_id: int) -> bool:
     """

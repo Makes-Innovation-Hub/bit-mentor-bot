@@ -1,10 +1,8 @@
-import requests
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ConversationHandler, ContextTypes
 
-from bot.config.logging_config import app_logger
-from constants import CATEGORIES
 from bot.utils.youtube_utils import *
+from constants import CATEGORIES
 
 YOUTUBE_TOPIC, VIDEO_LENGTH = range(2)
 
@@ -67,7 +65,8 @@ async def get_topic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             return YOUTUBE_TOPIC
 
         context.user_data['topic'] = selected_topic
-        await update.message.reply_text("Please enter the video length (short, medium, long):")
+        #await update.message.reply_text("Please enter the video length (short, medium, long):")
+        await update.message.reply_text("Please select the video length:", reply_markup=get_video_length_keyboard())
         return VIDEO_LENGTH
     except Exception as e:
         app_logger.error(f"Error in get_topic for user {update.effective_user.username} ({update.effective_user.id}): {e}")
@@ -90,6 +89,7 @@ async def send_invalid_topic_message(update: Update):
     except Exception as e:
         app_logger.error(f"Error in send_invalid_topic_message for user {update.effective_user.username} ({update.effective_user.id}): {e}")
         await update.message.reply_text("There was an error sending the invalid topic message. Please try again later.")
+
 
 
 
