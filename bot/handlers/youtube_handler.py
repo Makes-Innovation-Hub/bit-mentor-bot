@@ -21,12 +21,15 @@ async def start_youtube(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
     """
     try:
-        app_logger.info(f"User {update.effective_user.username} ({update.effective_user.id}) started YouTube video selection.")
+        app_logger.info(
+            f"User {update.effective_user.username} ({update.effective_user.id}) started YouTube video selection.")
         await send_category_selection(update)
         return YOUTUBE_TOPIC
     except Exception as e:
-        app_logger.error(f"Error in start_youtube for user {update.effective_user.username} ({update.effective_user.id}): {e}")
-        await update.message.reply_text("There was an error starting the YouTube video selection. Please try again later.")
+        app_logger.error(
+            f"Error in start_youtube for user {update.effective_user.username} ({update.effective_user.id}): {e}")
+        await update.message.reply_text(
+            "There was an error starting the YouTube video selection. Please try again later.")
         return ConversationHandler.END
 
 
@@ -43,11 +46,12 @@ async def send_category_selection(update: Update):
             message_text,
             reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
         )
-        app_logger.info(f"Sent category selection to user {update.effective_user.username} ({update.effective_user.id}).")
+        app_logger.info(
+            f"Sent category selection to user {update.effective_user.username} ({update.effective_user.id}).")
     except Exception as e:
-        app_logger.error(f"Error in send_category_selection for user {update.effective_user.username} ({update.effective_user.id}): {e}")
+        app_logger.error(
+            f"Error in send_category_selection for user {update.effective_user.username} ({update.effective_user.id}): {e}")
         await update.message.reply_text("There was an error displaying the category selection. Please try again later.")
-
 
 
 async def get_topic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -59,7 +63,8 @@ async def get_topic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """
     try:
         selected_topic = update.message.text
-        app_logger.info(f"User {update.effective_user.username} ({update.effective_user.id}) selected topic: {selected_topic}")
+        app_logger.info(
+            f"User {update.effective_user.username} ({update.effective_user.id}) selected topic: {selected_topic}")
 
         if selected_topic not in CATEGORIES:
             app_logger.warning(f"User {update.effective_user.username} selected an invalid topic: {selected_topic}")
@@ -70,7 +75,8 @@ async def get_topic(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("Please enter the video length (short, medium, long):")
         return VIDEO_LENGTH
     except Exception as e:
-        app_logger.error(f"Error in get_topic for user {update.effective_user.username} ({update.effective_user.id}): {e}")
+        app_logger.error(
+            f"Error in get_topic for user {update.effective_user.username} ({update.effective_user.id}): {e}")
         await update.message.reply_text("There was an error processing the selected topic. Please try again later.")
         return YOUTUBE_TOPIC
 
@@ -84,13 +90,15 @@ async def send_invalid_topic_message(update: Update):
     """
     try:
         await update.message.reply_text(
-            f"'{update.message.text}' is not a valid topic. Please select a topic from the following categories:\n" + "\n".join(CATEGORIES)
+            f"'{update.message.text}' is not a valid topic. Please select a topic from the following categories:\n" + "\n".join(
+                CATEGORIES)
         )
-        app_logger.info(f"Sent invalid topic message to user {update.effective_user.username} ({update.effective_user.id}).")
+        app_logger.info(
+            f"Sent invalid topic message to user {update.effective_user.username} ({update.effective_user.id}).")
     except Exception as e:
-        app_logger.error(f"Error in send_invalid_topic_message for user {update.effective_user.username} ({update.effective_user.id}): {e}")
+        app_logger.error(
+            f"Error in send_invalid_topic_message for user {update.effective_user.username} ({update.effective_user.id}): {e}")
         await update.message.reply_text("There was an error sending the invalid topic message. Please try again later.")
-
 
 
 async def get_video_length(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -111,17 +119,20 @@ async def get_video_length(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         topic = context.user_data.get('topic', "")
         user_id = update.message.from_user.id
 
-        app_logger.info(f"User {update.effective_user.username} ({user_id}) selected video length: {video_length} for topic: {topic}")
+        app_logger.info(
+            f"User {update.effective_user.username} ({user_id}) selected video length: {video_length} for topic: {topic}")
 
         if not is_valid_video_length(video_length):
-            app_logger.warning(f"User {update.effective_user.username} selected an invalid video length: {video_length}")
+            app_logger.warning(
+                f"User {update.effective_user.username} selected an invalid video length: {video_length}")
             await update.message.reply_text("Invalid length. Please enter 'short', 'medium', or 'long':")
             return VIDEO_LENGTH
 
-        await fetch_and_display_video_links(update,user_id, topic, video_length)
+        await fetch_and_display_video_links(update,context ,user_id, topic, video_length)
         return ConversationHandler.END
     except Exception as e:
-        app_logger.error(f"Error in get_video_length for user {update.effective_user.username} ({update.effective_user.id}): {e}")
+        app_logger.error(
+            f"Error in get_video_length for user {update.effective_user.username} ({update.effective_user.id}): {e}")
         await update.message.reply_text("There was an error processing the video length. Please try again later.")
         return VIDEO_LENGTH
 
@@ -132,34 +143,60 @@ async def mark_video_watched_callback(update: Update, context: ContextTypes.DEFA
 
     Raises:
         Exception: If there is an error updating the video watch status.
-
-    This function retrieves the video index and video URL from the query data and updates the video watch status in the user data. It logs the updated video watch status and the topic associated with the user. If there is an error updating the video watch status, it logs the error and sends an error message to the user.
     """
     try:
+        # Get the callback query from the update
         query = update.callback_query
         await query.answer()
 
+        # Retrieve user ID, topic, and video length from user data
         user_id = query.from_user.id
-        topic = context.user_data.get('topic', "")
-        video_length = context.user_data.get('video_length', "")
+        topic = context.user_data.get('topic', '')
+        video_length = context.user_data.get('video_length', '')
 
-        original_text = query.message.text
-        keyboard = query.message.reply_markup.inline_keyboard
-
-        video_index = get_video_index(query.data)
-        video_links = extract_video_links(original_text)
-        video_url = video_links[video_index].strip()
-
-        app_logger.info(f"User {query.from_user.username} ({user_id}) marked video as watched: {video_url}")
-
-        if await handle_video_watched(query, video_url, keyboard[video_index][0].text, user_id):
+        # Extract video index from the callback data
+        video_index_str = query.data
+        try:
+            video_index = int(video_index_str.replace('watch_', ''))
+        except ValueError:
+            app_logger.warning(f"Invalid callback data format: {video_index_str}")
+            await query.message.reply_text("Invalid selection. Please try again.")
             return
 
-        await update_watch_history(user_id, topic, video_length, video_url)
+        # Retrieve video URLs and titles from user data
+        video_urls = context.user_data.get('video_urls', [])
+        video_titles = context.user_data.get('video_titles', [])
 
-        new_keyboard = create_new_keyboard(keyboard, video_index)
-        await query.edit_message_text(text=original_text, reply_markup=InlineKeyboardMarkup(new_keyboard))
-        app_logger.info(f"Updated video watch status for user {query.from_user.username} ({user_id}).")
+        # Check if the video_index is within bounds
+        if not video_urls or not video_titles or video_index < 0 or video_index >= len(video_urls):
+            app_logger.warning(f"Video index out of range or missing data: {video_index}")
+            await query.message.reply_text("Video URL or title not found. Please try again later.")
+            return
+
+        # Get the video URL and title
+        video_url = video_urls[video_index]
+        video_title = video_titles[video_index]
+
+        # Handle the video watch status
+        button_text = query.message.reply_markup.inline_keyboard[video_index][0].text
+        is_watched = await handle_video_watched(query, video_url, button_text, user_id)
+
+        if not is_watched:
+            # Update watch history
+            await update_watch_history(user_id, topic, video_length, video_url)
+
+            # Update the keyboard
+            message = query.message
+            original_text = message.text
+            keyboard = message.reply_markup.inline_keyboard
+            new_keyboard = create_new_keyboard(keyboard, video_index)
+
+            # Update the message text and keyboard
+            new_message_text = original_text + "\n\nVideo marked as watched."
+            await query.edit_message_text(text=new_message_text, reply_markup=InlineKeyboardMarkup(new_keyboard))
+
+            app_logger.info(f"Updated video watch status for user {query.from_user.username} ({user_id}).")
     except Exception as e:
-        app_logger.error(f"Error in mark_video_watched_callback for user {update.effective_user.username} ({update.effective_user.id}): {e}")
-        await update.message.reply_text("There was an error marking the video as watched. Please try again later.")
+        app_logger.error(
+            f"Error in mark_video_watched_callback for user {update.effective_user.username} ({update.effective_user.id}): {e}")
+        await query.message.reply_text("There was an error marking the video as watched. Please try again later.")

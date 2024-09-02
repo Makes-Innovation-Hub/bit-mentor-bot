@@ -1,7 +1,9 @@
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
 
 from bot.config.logging_config import app_logger
+
 
 async def handle_video_watched(query: Update.callback_query, video_url: str, button_text: str, user_id: int) -> bool:
     """
@@ -24,6 +26,7 @@ async def handle_video_watched(query: Update.callback_query, video_url: str, but
     print(f"User {user_id} clicked on: {video_url}")
     await query.message.reply_text(f"You clicked on the video: {video_url}")
     return False
+
 
 async def update_watch_history(user_id: int, topic: str, video_length: str, video_url: str):
     """
@@ -55,7 +58,8 @@ async def update_watch_history(user_id: int, topic: str, video_length: str, vide
         response.raise_for_status()
         app_logger.info(f"Successfully updated watch history for user {user_id}")
     except requests.HTTPError as e:
-        app_logger.error(f"HTTP error while updating watch history for user {user_id}: {e.response.status_code} - {e.response.text}")
+        app_logger.error(
+            f"HTTP error while updating watch history for user {user_id}: {e.response.status_code} - {e.response.text}")
     except Exception as e:
         app_logger.error(f"Unexpected error while updating watch history for user {user_id}: {str(e)}")
 
@@ -75,17 +79,17 @@ def create_new_keyboard(keyboard: list, video_index: int) -> list:
         Exception: If an error occurs while creating the new keyboard.
     """
     try:
-        new_keyboard = []
-        for i in range(len(keyboard)):
-            if i == video_index:
-                new_keyboard.append([InlineKeyboardButton("Watched", callback_data=f"watch_{i + 1}")])
-            else:
-                new_keyboard.append([keyboard[i][0]])
+        new_keyboard = [
+            [InlineKeyboardButton("Watched" if i == video_index else keyboard[i][0].text,
+                                  callback_data=f"watch_{i}" if i != video_index else "watched")]
+            for i in range(len(keyboard))
+        ]
         app_logger.info(f"Created new keyboard with 'Watched' button at index {video_index}")
         return new_keyboard
     except Exception as e:
         app_logger.error(f"Error creating new keyboard: {str(e)}")
         return keyboard  # Return the original keyboard if something goes wrong
+
 
 def extract_video_links(original_text: str) -> list:
     """
@@ -108,6 +112,7 @@ def extract_video_links(original_text: str) -> list:
         app_logger.error(f"Error extracting video links: {str(e)}")
         return []
 
+
 def get_video_index(callback_data: str) -> int:
     """
     Extracts the video index from the provided callback data.
@@ -125,6 +130,7 @@ def get_video_index(callback_data: str) -> int:
     except Exception as e:
         app_logger.error(f"Error getting video index from callback data: {str(e)}")
         return -1  # Return an invalid index if something goes wrong
+
 
 def is_valid_video_length(video_length: str) -> bool:
     """
@@ -144,29 +150,40 @@ def is_valid_video_length(video_length: str) -> bool:
         app_logger.warning(f"Invalid video length: {video_length}")
         return False
 
-async def display_video_links(update, video_links: list):
+
+async def display_video_links(update, video_data: list):
     """
-    Displays a list of YouTube video links to the user.
+    Displays a list of YouTube video links with titles as buttons to the user.
 
     Args:
         update: The incoming update object.
-        video_links (list): A list of YouTube video links to display.
+        video_data (list): A list where the first sublist contains video URLs and the second sublist contains video titles.
     """
     try:
+        # Check if video_data has the expected structure
+        if len(video_data) != 2 or len(video_data[0]) != len(video_data[1]):
+            raise ValueError("Invalid video_data format. Expected [[video_urls], [video_titles]]")
+
+        video_urls = video_data[0]
+        video_titles = video_data[1]
+
+        # Create keyboard with titles as button text
         keyboard = [
-            [InlineKeyboardButton(f"Watch video {i + 1}", callback_data=f"watch_{i + 1}")]
-            for i in range(len(video_links))
+            [InlineKeyboardButton(text=video_title, callback_data=f"watch_{i}")]
+            for i, video_title in enumerate(video_titles)
         ]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
-        reply_text = "Here are the top YouTube videos:\n\n" + "\n".join(video_links)
+        reply_text = "Here are the top YouTube videos:"
         await update.message.reply_text(reply_text, reply_markup=reply_markup)
         app_logger.info("Displayed video links to the user")
     except Exception as e:
         app_logger.error(f"Error displaying video links: {str(e)}")
         await update.message.reply_text("An error occurred while displaying video links. Please try again later.")
 
-async def fetch_and_display_video_links(update: Update,user_id, topic: str, video_length: str):
+
+async def fetch_and_display_video_links(update: Update, context: ContextTypes.DEFAULT_TYPE, user_id, topic: str,
+                                        video_length: str):
     """
     Fetches YouTube video links based on the provided topic and video length, 
     and displays them to the user.
@@ -179,18 +196,18 @@ async def fetch_and_display_video_links(update: Update,user_id, topic: str, vide
     """
     try:
         app_logger.info(f"Fetching video links for topic '{topic}' with length '{video_length}'")
-        payload={
-                "topic": topic,
-                "length": video_length,
-                "user_id": str(user_id)
-            }
+        payload = {
+            "topic": topic,
+            "length": video_length,
+            "user_id": str(user_id)
+        }
         # Uncomment to make an actual API request
         response = requests.post(
             "http://localhost:8000/youtube/",
             json=payload
         )
         response.raise_for_status()
-        video_links = response.json()
+        video_data = response.json()
 
         # Sample video links for testing
         # video_links = [
@@ -201,12 +218,13 @@ async def fetch_and_display_video_links(update: Update,user_id, topic: str, vide
         #     "https://www.youtube.com/watch?v=fake5"
         # ]
 
-        if not video_links:
+        if not video_data:
             await update.message.reply_text("No videos found.")
             app_logger.info("No videos found for the given criteria.")
             return
-
-        await display_video_links(update, video_links)
+        context.user_data['video_urls'] = video_data[0]
+        context.user_data['video_titles'] = video_data[1]
+        await display_video_links(update, video_data)
 
     except requests.HTTPError as e:
         app_logger.error(f"HTTP error while fetching video links: {e.response.status_code} - {e.response.text}")
