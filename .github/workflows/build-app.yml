@@ -12,7 +12,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    permissions:
+      checks: write
+      
     steps:
     - uses: actions/checkout@v4
 
@@ -38,7 +40,19 @@ jobs:
         echo "SERVER_URL_DEV=${{ secrets.SERVER_URL_DEV }}" >> .env_dev
         echo "GOOGLE_TIMEZONE_DEV=${{ secrets.GOOGLE_TIMEZONE_DEV }}" >> .env_dev
         echo "GOOGLE_CREDENTIALS_DEV=${{ secrets.GOOGLE_CREDENTIALS_DEV }}" >> .env_dev
-        pytest
+
+    - name: Test with pytest
+      env:
+        ENVIRONMENT: dev
+      run: |
+        python -m pytest --verbose --junit-xml=junit.xml
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v3
+      if: success() || failure() # always run even if the previous step fails
+      with:
+        report_paths: '**/junit.xml'
+        detailed_summary: true
+        include_passed: true
         
 
   deploy:
