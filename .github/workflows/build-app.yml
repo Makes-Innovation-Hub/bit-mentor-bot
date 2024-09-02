@@ -34,7 +34,7 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
+    - name: create .env_dev file
       run: |
         echo "BOT_TOKEN_DEV=${{ secrets.BOT_TOKEN_DEV }}" >> .env_dev
         echo "SERVER_URL_DEV=${{ secrets.SERVER_URL_DEV }}" >> .env_dev
@@ -106,7 +106,7 @@ jobs:
         pkill -f "python3 -m bot.main" || true
         nohup python3 -m bot.main > /dev/null 2>&1 &
         EOF
-        
+
     - name: Docker Login and Deployment
       run: |
         ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
