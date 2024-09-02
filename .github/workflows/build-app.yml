@@ -69,7 +69,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
         set -e
         sudo apt-get update
-        sudo apt-get install -y python3-pip python3-venv
+        sudo apt-get install -y python3-pip python3-venv docker docker-compose
   
         if [ -d "/home/ubuntu/bit-mentor-bot" ]; then
           echo "App directory exists. Pulling latest changes."
@@ -105,4 +105,15 @@ jobs:
         source venv/bin/activate
         pkill -f "python3 -m bot.main" || true
         nohup python3 -m bot.main > /dev/null 2>&1 &
+        EOF
+        
+    - name: Docker Login and Deployment
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+        echo "Logging into Docker Hub"
+        echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+        
+        echo "Running Docker deployment..."
+        cd /home/ubuntu/bit-mentor-bot
+        ./docker-deploy.sh ${{ secrets.DOCKER_HUB_USERNAME }} dev
         EOF
