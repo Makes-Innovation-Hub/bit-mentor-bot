@@ -1,9 +1,9 @@
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-
+from bot.setting.config import config
 from bot.config.logging_config import app_logger
-
+from bot.utils.jwt_utils import create_jwt
 
 async def handle_video_watched(query: Update.callback_query, video_url: str, button_text: str, user_id: int) -> bool:
     """
@@ -50,10 +50,13 @@ async def update_watch_history(user_id: int, topic: str, video_length: str, vide
         }
 
         app_logger.info(f"Updating watch history for user {user_id} with payload: {payload}")
-
+        token = create_jwt(user_id)
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
         response = requests.post(
-            "http://localhost:8000/youtube/mark_link_watched",
-            json=payload
+            f"{config.SERVER_URL}/youtube/mark_link_watched",
+            json=payload, headers=headers
         )
         response.raise_for_status()
         app_logger.info(f"Successfully updated watch history for user {user_id}")
@@ -202,9 +205,13 @@ async def fetch_and_display_video_links(update: Update, context: ContextTypes.DE
             "user_id": str(user_id)
         }
         # Uncomment to make an actual API request
+        token = create_jwt(user_id)
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
         response = requests.post(
-            "http://localhost:8000/youtube/",
-            json=payload
+            f"{config.SERVER_URL}/youtube/",
+            json=payload, headers=headers
         )
         response.raise_for_status()
         video_data = response.json()

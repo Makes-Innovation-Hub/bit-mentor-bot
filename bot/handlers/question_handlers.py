@@ -3,6 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Keyboar
 from telegram.ext import ContextTypes , ConversationHandler
 from bot.setting.config import config
 from bot.config.logging_config import app_logger
+from bot.utils.jwt_utils import create_jwt
 def get_difficulty_keyboard():
     difficulty_button1 = KeyboardButton("easy")
     difficulty_button2 = KeyboardButton("medium")
@@ -25,7 +26,7 @@ def get_answers_keyboard():
 
 DIFFICULTY, ANSWERS, TOPIC ,USER_ANSWER= range(4)
 
-def get_topics():
+def get_topics(user_id):
     """
     Fetches a list of topics from the server.
 
@@ -33,7 +34,12 @@ def get_topics():
         list: A list of topics in JSON format.
     """
     try:
-        response = requests.get(f"{config.SERVER_URL}/topics")
+        token = create_jwt(user_id)
+        headers = {
+        'Authorization': f'Bearer {token}'
+        }
+
+        response = requests.get(f"{config.SERVER_URL}/topics", headers=headers)
         response.raise_for_status()
         topics = response.json()
         return topics
@@ -104,7 +110,7 @@ async def answers_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         # save num_of_answers to user data
         context.user_data['num_of_answers'] = num_of_answers
         app_logger.info(f"Saved number of answers '{num_of_answers}' to user data")
-        topics = get_topics()
+        topics = get_topics(update.effective_user.id)
         if not topics:
             await update.message.reply_text("No topics available. Please try again later.")
             return
@@ -160,9 +166,14 @@ async def handle_open_question_topic(update: Update, context: ContextTypes.DEFAU
         topic = context.user_data['topic']
         difficulty = context.user_data['difficulty']
         app_logger.info(f"Handling open question for topic '{topic}' with difficulty '{difficulty}'")
+        token = create_jwt(update.effective_user.id)
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
         response = requests.post(
             f"{config.SERVER_URL}/questions/", 
-            json={"difficulty": difficulty, "subject": topic}
+            json={"difficulty": difficulty, "subject": topic},
+            headers=headers
         ).json()
         app_logger.info(f"Received response for open question: {response}")
         # save question data to user data
@@ -196,9 +207,14 @@ async def handle_closed_question_topic(update: Update, context: ContextTypes.DEF
         num_of_answers = context.user_data['num_of_answers']
         app_logger.info(
             f"Handling closed question for topic '{topic}' with difficulty '{difficulty}' and {num_of_answers} answers")
+        token = create_jwt(update.effective_user.id)
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
         response = requests.post(
             f"{config.SERVER_URL}/questions/", 
-            json={"difficulty": difficulty, "subject": topic, "answers_count": num_of_answers}
+            json={"difficulty": difficulty, "subject": topic, "answers_count": num_of_answers},
+            headers=headers
         ).json()
         app_logger.info(f"Received response for closed question: {response}")
         # save question data to user data

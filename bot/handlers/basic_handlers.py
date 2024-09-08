@@ -4,7 +4,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 
 from bot.config.logging_config import app_logger
 from bot.setting.config import config
-
+from bot.utils.jwt_utils import create_jwt
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, public_ip: str) -> None:
     """
@@ -69,7 +69,13 @@ async def connect(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     try:
         app_logger.info(f"User {update.effective_user.username} ({update.effective_user.id}) triggered connect command.")
-        response = requests.get(f"{config.SERVER_URL}/")
+
+        token = create_jwt(update.effective_user.id)
+        headers = {
+        'Authorization': f'Bearer {token}',
+        }
+        
+        response = requests.get(f"{config.SERVER_URL}/", headers=headers)
         response.raise_for_status()
         data = response.json()
         app_logger.info("Connection successful, sending response message")

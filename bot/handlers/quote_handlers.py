@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 import requests
 from bot.setting.config import config
 from bot.config.logging_config import app_logger
-
+from bot.utils.jwt_utils import create_jwt
 
 async def quote_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
@@ -14,7 +14,11 @@ async def quote_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     app_logger.info(f"User {update.effective_user.username} ({user_id}) triggered quote command")
 
     try:
-        response = requests.get(f"{config.SERVER_URL}/quote/{user_id}")
+        token = create_jwt(user_id)
+        headers = {
+            'Authorization': f'Bearer {token}'
+        }
+        response = requests.get(f"{config.SERVER_URL}/quote/{user_id}", headers=headers)
         response.raise_for_status()  # This will raise an HTTPError for bad responses
         data = response.json()
         # Extract the quote and author from the response
