@@ -41,8 +41,11 @@ def setup_logger(request_id=None, user=None, handler_name=None):
         if not os.path.exists(log_directory):
             print(f"Creating log directory: {log_directory}")
             os.makedirs(log_directory)
-
+        
         log_file = os.path.join(log_directory, 'app.log')
+        if os.path.exists(log_file):
+            os.remove(log_file)
+            
         handler = RotatingFileHandler(log_file, maxBytes=10485760, backupCount=5)
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(request_id)s - %(user)s - %(handler)s - %(levelname)s - %(message)s')

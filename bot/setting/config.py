@@ -74,7 +74,8 @@ class Config:
 try:
     parser = argparse.ArgumentParser(description="Configuration")
     parser.add_argument('--env', default='dev', choices=['dev', 'prod'], help="Specify the environment (dev or prod)")
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
+    #args = parser.parse_args()
     config = Config(args.env)
 
 except FileNotFoundError as e:
