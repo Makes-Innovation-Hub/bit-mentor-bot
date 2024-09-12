@@ -8,7 +8,7 @@ from bot.setting.config import config
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, public_ip: str) -> None:
     """
-    Sends a welcome message to the user with their public IP address.
+    Sends a welcome message to the user with the bot's public IP address.
 
     Args:
         public_ip (str): The public IP address of the user.
